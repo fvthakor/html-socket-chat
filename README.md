@@ -4,6 +4,6 @@ Example Project demonstrating how to develop realtime chat application with sock
 # realtime chat app
 chat App functionality: 
 
-- save a name
+- save a nickname start chat
 - send a message
 - receive a message
