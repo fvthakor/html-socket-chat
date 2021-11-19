@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+    <style>
+      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="login-page" class="w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 mt-16">
+      <div class="px-6 py-4">
+          <h2 class="text-3xl font-bold text-center text-gray-700 dark:text-white">Socket.io Chat App</h2>
+          <h3 class="mt-1 text-xl font-medium text-center text-gray-600 dark:text-gray-200">Welcome Back</h3>
+          <p class="mt-1 text-center text-gray-500 dark:text-gray-400">Please enter your name and save to start live chat</p>
+          <form id="name-form" action="">
+              <div class="w-full mt-4">
+                  <input class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-md dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring" type="text" placeholder="Enter Name" aria-label="Name" id="input-name" />
+              </div>
+
+              <div class="flex items-center justify-center mt-4">
+                  <button class="px-4 py-2 leading-5 text-white transition-colors duration-200 transform bg-gray-700 rounded hover:bg-gray-600 focus:outline-none" id="name-save-button" type="button">Save</button>
+              </div>
+          </form>
+      </div>
+    </div>
+    <div id="chat-screen" class="flex h-screen antialiased text-gray-800 overflow-hidden" style="display: none;">
+      <div class="flex flex-row h-full w-full overflow-x-hidden">
+        
+        <div class="flex flex-col flex-auto p-6 pb-10 overflow-x-auto">
+          <div
+            class="relative flex flex-col flex-auto  flex-shrink-0 rounded-2xl bg-gray-100 p-4"
+          >
+            <div class="flex flex-col  mb-4">
+              <div class="flex flex-col h-5/6">
+                <div class="grid grid-cols-12 gap-y-2 pb-20" id="messages">
+                  <!-- Message body -->
+                </div>
+              </div>
+            </div>
+            <form id="form" action="" class="fixed left-0 right-0 bottom-0">
+              <div
+                class="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4"
+              >
+                <div class="flex-grow ml-4">
+                  <div class="relative w-full">
+                    <input
+                      type="text"
+                      id="input"
+                      class="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                    />
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <button
+                    class="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0"
+                  >
+                    <span>Send</span>
+                    <span class="ml-2">
+                      <svg
+                        class="w-4 h-4 transform rotate-45 -mt-px"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                        ></path>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form> --> 
+  </body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var name = ''
+    var socket = io();
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+    document.getElementById("name-save-button").addEventListener("click", nameSave);
+
+    function nameSave() {
+      var nameValue = document.getElementById("input-name").value;
+      if(nameValue.trim() !== ''){
+        document.getElementById("chat-screen").style.display = "block";
+        document.getElementById("login-page").style.display = "none";
+        name = nameValue
+      }else{
+        alert('please enter name');
+      }
+    }
+    
+    var formName = document.getElementById('name-form');
+    formName.addEventListener('submit', nameSave);
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', {message: input.value, name:name});
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', function(chat) {
+      var messageText = document.createElement('div');
+      messageText.textContent = chat.message
+      var messageDiv = document.createElement('div')
+      let classesToAdd = [ 'relative', 'ml-3', 'text-sm', 'bg-white', 'py-2', 'px-4', 'shadow', 'rounded-xl' ];
+      messageDiv.classList.add(...classesToAdd);
+      messageDiv.appendChild(messageText)
+      var messageContainer = document.createElement('div')
+      messageContainer.textContent = 'A'
+      let classesToAdd2 = [ 'flex', 'items-center', 'justify-center', 'h-10', 'w-10', 'rounded-full', 'bg-indigo-500', 'flex-shrink-0' ];
+      messageContainer.classList.add(...classesToAdd2);
+      var chaildDiv = document.createElement('div')
+      var parantDiv = document.createElement('div')
+      var className = document.createElement('div')
+      className.textContent = chat.name
+      var nameClass = [ 'absolute', 'text-xs', 'bottom-0', '-mb-5', 'mr-2', 'text-gray-500' ];
+      className.classList.add(...nameClass);
+      if(chat.name === name){
+        className.classList.add("right-0");
+        var chaildDivClass = [ 'flex', 'items-center', 'justify-start', 'flex-row-reverse' ];
+        var parantDivClass = [ 'col-start-6', 'col-end-13', 'p-3', 'rounded-lg' ];
+      }else{
+        className.classList.add("left-0")
+        var chaildDivClass = [ 'flex', 'flex-row', 'items-center' ];
+        var parantDivClass = [ 'col-start-1', 'col-end-8', 'p-3', 'rounded-lg' ];
+      }
+      messageDiv.appendChild(className)
+      chaildDiv.classList.add(...chaildDivClass);
+      chaildDiv.appendChild(messageContainer)
+      chaildDiv.appendChild(messageDiv)
+      parantDiv.appendChild(chaildDiv)
+      parantDiv.classList.add(...parantDivClass);
+      var element = document.getElementById("messages");
+      element.appendChild(parantDiv)
+      document.getElementById('messages').scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+
+    });
+  </script>
+</html>
